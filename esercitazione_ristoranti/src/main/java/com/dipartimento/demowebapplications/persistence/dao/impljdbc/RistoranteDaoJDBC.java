@@ -11,6 +11,7 @@ import java.util.List;
 
 public class RistoranteDaoJDBC implements RistoranteDao {
     Connection conn = null;
+
     public RistoranteDaoJDBC(Connection conn){
         this.conn = conn;
     }
@@ -77,6 +78,45 @@ public class RistoranteDaoJDBC implements RistoranteDao {
         }
     }
 
+    @Override
+    public void addPiattoToRistorante(int ristoranteId, int piattoId) {
+        String query = "INSERT INTO ristorante_piatto (ristorante, piatto) VALUES (?, ?)";
+        try (PreparedStatement statement = conn.prepareStatement(query)) {
+            statement.setInt(1, ristoranteId);
+            statement.setInt(2, piattoId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void removePiattoFromRistorante(int ristoranteId, int piattoId) {
+        String query = "DELETE FROM ristorante_piatto WHERE ristorante = ? AND piatto = ?";
+        try (PreparedStatement statement = conn.prepareStatement(query)) {
+            statement.setInt(1, ristoranteId);
+            statement.setInt(2, piattoId);
+            statement.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<Piatto> findPiattiByRistorante(int ristoranteId) {
+        String query = "SELECT p.nome, p.ingredienti FROM piatto p JOIN ristorante_piatto rp ON p.nome = rp.piatto WHERE rp.ristorante = ?";
+        List<Piatto> piatti = new ArrayList<>();
+        try (PreparedStatement statement = conn.prepareStatement(query)) {
+            statement.setInt(1, ristoranteId);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                piatti.add(new Piatto(resultSet.getString("nome"), resultSet.getString("ingredienti")));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return piatti;
+    }
     public static void main(String[] args) {
         RistoranteDao ristoDao = DBManager.getInstance().getRistoranteDao();
         List<Ristorante> ristoranti = ristoDao.findAll();

@@ -5,6 +5,15 @@ public class Piatto {
     private String ingredienti;
     private Ristorante ristorante;
 
+    public Piatto(String nome, String ingredienti) {
+        this.nome = nome;
+        this.ingredienti = ingredienti;
+    }
+
+    public Piatto() {
+
+    }
+
     public String getNome() {
         return nome;
     }

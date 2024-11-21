@@ -91,13 +91,116 @@ public class PiattoDaoJDBC implements PiattoDao {
         }
     }
 
+    @Override
+    public List<Piatto> findAllByRistoranteName(String name) {
+        List<Piatto> piatti = new ArrayList<Piatto>();
+        String query = "select * from piatto where idristorante = ?";
+        try {
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setString(1, name);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()){
+                Piatto piatto = new Piatto();
+
+                piatto.setNome(rs.getString("nome"));
+                piatto.setIngredienti(rs.getString("ingredienti"));
+
+                RistoranteDao ristoranteDao = DBManager.getInstance().getRistoranteDao();
+                String key = rs.getString("idristorante");
+                Ristorante ristorante = ristoranteDao.findByPrimaryKey(key);
+                piatto.setRistorante(ristorante);
+
+                piatti.add(piatto);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return piatti;
+    }
+
+    @Override
+    public Piatto findByID(int id) {
+        Piatto piatto = new Piatto();
+        String query = "select * from piatto where id = ?";
+        try {
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setInt(1, id);
+            ResultSet rs = st.executeQuery();
+            piatto.setNome(rs.getString("nome"));
+            piatto.setIngredienti(rs.getString("ingredienti"));
+
+            RistoranteDao ristoranteDao = DBManager.getInstance().getRistoranteDao();
+            String key = rs.getString("idristorante");
+            Ristorante ristorante = ristoranteDao.findByPrimaryKey(key);
+            piatto.setRistorante(ristorante);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return piatto;
+    }
+
+    @Override
+    public void create(Piatto piatto) {
+        String query = "insert into piatto (nome, ingredienti) values (?, ?)";
+        try {
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setString(1, piatto.getNome());
+            st.setString(2, piatto.getIngredienti());
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void update(Piatto piatto) {
+        String query = "update piatto set ingredienti = ? where nome = ?";
+        try {
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setString(1, piatto.getIngredienti());
+            st.setString(2, piatto.getNome());
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteByID(int id) {
+        String query = "delete from piatto where id = ?";
+        try {
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setInt(1, id);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void addRistoranteToPiatto(int piattoId, int ristoranteId) {
+        String query = "insert into piatto_ristorante (piatto, ristorante) values (?, ?)";
+        try {
+            PreparedStatement st = conn.prepareStatement(query);
+            st.setInt(1, piattoId);
+            st.setInt(2, ristoranteId);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void removeRistoranteFromPiatto(int piattoId, int ristoranteId) {
+
+    }
+
     public static void main(String[] args) {
         PiattoDao piattoDao = DBManager.getInstance().getPiattoDao();
         List<Piatto> piatti = piattoDao.findAll();
         for (Piatto piatto : piatti) {
             System.out.println(piatto.getNome());
             System.out.println(piatto.getIngredienti());
-
         }
     }
 }
